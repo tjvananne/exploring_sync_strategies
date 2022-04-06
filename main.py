@@ -36,6 +36,46 @@ def get_modified_timestamp(filepath: str) -> float:
     return os.stat(filepath).st_mtime
 
 
+def file_contents_are_different(filepath1: str, filepath2: str) -> bool:
+    """
+    Return True if file contents are different.
+    Return False if file contents are identical.
+
+    Order of the arguments does not matter.
+    """
+
+    return not checksum(filepath1) == checksum(filepath2)
+
+
+def sync_files(filepath1: str, filepath2: str) -> None:
+    """
+    Side effect: filepath1 and filepath2 will be synced. This will
+    modify the contents of one of these files on disk.
+
+    Order of the arguments does not matter. We'll read from the
+    most recently modified file and overwrite the entire contents
+    of the less recently modified file.
+
+    TODO: handle conflicts?
+    """
+
+    if get_modified_timestamp(filepath1) > get_modified_timestamp(filepath2):
+        newer_file = file1
+        older_file = file2
+        logging.info(f"syncing {filepath1} to {filepath2}")
+    else:
+        newer_file = file2
+        older_file = file1
+        logging.info(f"syncing {filepath2} to {filepath1}")
+
+    with open(newer_file, "rb") as f_source:
+        with open(older_file, "wb") as f_target:
+            f_target.truncate()
+            f_target.write(f_source.read())
+
+    return
+
+
 if __name__ == "__main__":
 
     while True:
@@ -44,20 +84,8 @@ if __name__ == "__main__":
         file1 = "source.txt"
         file2 = "target.txt"
 
-        if checksum(file1) != checksum(file2):
-            print("syncing...")
-
-            if get_modified_timestamp(file1) > get_modified_timestamp(file2):
-                newer_file = file1
-                older_file = file2
-            else:
-                newer_file = file2
-                older_file = file1
-
-            with open(newer_file, "r") as f_source:
-                with open(older_file, "w") as f_target:
-                    f_target.truncate()
-                    f_target.write(f_source.read())
+        if file_contents_are_different(file1, file2):
+            sync_files(file1, file2)
 
         time.sleep(1)
-        print("checking if sync is needed!")
+        # print("checking if sync is needed!")

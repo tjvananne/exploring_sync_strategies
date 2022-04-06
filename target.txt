@@ -1,1 +1,7 @@
 testing data sync - here we go adding some data to target
+
+is sync needed? testing target to source (it's bidirectional, just referencing the file names themselves)
+
+And now we're looking at source to target.
+
+Awesome, it's working! Logging looks good as well.
